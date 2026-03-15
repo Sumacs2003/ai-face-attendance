@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}View Attendance{% endblock %}
+
+{% block page_title %}Attendance Records{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('attendance.view') }}" class="row g-3">
+            <div class="col-md-4">
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+            </div>
+            <div class="col-md-4">
+                <select name="class" class="form-select">
+                    <option value="">All Classes</option>
+                    {% for class in classes %}
+                    <option value="{{ class }}" {% if class == selected_class %}selected{% endif %}>{{ class }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5>Present</h5>
+                <h2>{{ stats.total_present }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5>Total Students</h5>
+                <h2>{{ stats.total_students }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5>Percentage</h5>
+                <h2>{{ stats.percentage }}%</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Roll No</th>
+                        <th>Class</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance %}
+                    <tr>
+                        <td>{{ record.student.name }}</td>
+                        <td>{{ record.student.roll_number }}</td>
+                        <td>{{ record.student.class_name }} {{ record.student.section }}</td>
+                        <td>{{ record.timestamp.strftime('%I:%M %p') }}</td>
+                        <td><span class="badge bg-success">Present</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center">No records found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

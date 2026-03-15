@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Select Student for Face Registration{% endblock %}
+
+{% block page_title %}Select Student for Face Registration{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for student in students %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <!-- Student Avatar -->
+                <div class="bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem;">
+                    {{ student.name[0] }}
+                </div>
+
+                <!-- Student Info -->
+                <h5 class="card-title">{{ student.name }}</h5>
+                <p class="card-text">
+                    <strong>ID:</strong> {{ student.student_id }}<br>
+                    <strong>Roll:</strong> {{ student.roll_number }}<br>
+                    <strong>Class:</strong> {{ student.class_name }} {{ student.section }}
+                </p>
+
+                <!-- Register Face Button - FIXED: Using face.capture instead of face.register -->
+                <a href="{{ url_for('face.capture', student_id=student.id) }}" class="btn btn-primary">
+                    <i class="bi bi-camera"></i> Register Face
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> No students found without face registration.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "student/base.html" %}
+
+{% block title %}Request Leave{% endblock %}
+
+{% block page_title %}Request Leave{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="content-card">
+            <h5><i class="bi bi-envelope"></i> Leave Application Form</h5>
+
+            <form method="POST" class="mt-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Student Name</label>
+                    <input type="text" class="form-control" value="{{ student.name }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Student ID</label>
+                    <input type="text" class="form-control" value="{{ student.student_id }}" readonly>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">From Date</label>
+                        <input type="date" name="from_date" class="form-control"
+                               min="{{ datetime.now().strftime('%Y-%m-%d') }}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">To Date</label>
+                        <input type="date" name="to_date" class="form-control"
+                               min="{{ datetime.now().strftime('%Y-%m-%d') }}" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Reason for Leave</label>
+                    <textarea name="reason" class="form-control" rows="5"
+                              placeholder="Please explain the reason for your leave request..." required></textarea>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Note:</strong> Your leave request will be reviewed by the administration.
+                    You will be notified once it's approved or rejected.
+                </div>
+
+                <div class="text-end">
+                    <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary me-2">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validate dates
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const fromDate = new Date(document.querySelector('[name="from_date"]').value);
+        const toDate = new Date(document.querySelector('[name="to_date"]').value);
+
+        if (toDate < fromDate) {
+            e.preventDefault();
+            alert('To Date cannot be before From Date!');
+        }
+    });
+</script>
+{% endblock %}

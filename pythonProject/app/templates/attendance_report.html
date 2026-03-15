@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Report - Face Attendance System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-text me-2"></i>Attendance Report</h2>
+    <div>
+        <button onclick="window.print()" class="btn btn-outline-primary me-2">
+            <i class="bi bi-printer"></i> Print
+        </button>
+        <a href="{{ url_for('attendance.view') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+{% if is_admin %}
+<!-- Date Range Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" name="from_date" value="{{ from_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" name="to_date" value="{{ to_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Class</label>
+                <select class="form-select" name="class">
+                    <option value="">All Classes</option>
+                    {% for class in classes %}
+                        <option value="{{ class }}" {% if selected_class == class %}selected{% endif %}>
+                            {{ class }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Summary -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="text-white-50">Date Range</h6>
+                <h6>{{ from_date }} to {{ to_date }}</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="text-white-50">Total Students</h6>
+                <h3>{{ report|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="text-white-50">Total Days</h6>
+                <h3>{{ report[0].total_days if report else 0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="text-white-50">Average Attendance</h6>
+                <h3>{{ "%.1f"|format(report|map(attribute='percentage')|sum / report|length if report else 0) }}%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-2"></i>Attendance Report</span>
+        <span class="badge bg-primary">{{ report|length }} students</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Student</th>
+                        <th>Roll No.</th>
+                        <th>Class</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Total Days</th>
+                        <th>Percentage</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report %}
+                    <tr>
+                        <td>
+                            {% if loop.index == 1 %}
+                                <span class="badge bg-warning">🥇</span>
+                            {% elif loop.index == 2 %}
+                                <span class="badge bg-secondary">🥈</span>
+                            {% elif loop.index == 3 %}
+                                <span class="badge bg-info">🥉</span>
+                            {% else %}
+                                {{ loop.index }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if item.student.photo_path %}
+                                    <img src="{{ url_for('static', filename=item.student.photo_path) }}"
+                                         class="rounded-circle me-2" width="30" height="30"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                         style="width: 30px; height: 30px; font-size: 0.9rem;">
+                                        {{ item.student.name[0] }}
+                                    </div>
+                                {% endif %}
+                                {{ item.student.name }}
+                            </div>
+                        </td>
+                        <td>{{ item.student.roll_number }}</td>
+                        <td>{{ item.student.class_name }} {{ item.student.section }}</td>
+                        <td>
+                            <span class="text-success">{{ item.present }}</span>
+                        </td>
+                        <td>
+                            <span class="text-danger">{{ item.absent }}</span>
+                        </td>
+                        <td>{{ item.total_days }}</td>
+                        <td style="width: 150px;">
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                    <div class="progress-bar {% if item.percentage >= 75 %}bg-success{% elif item.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                         role="progressbar"
+                                         style="width: {{ item.percentage }}%;">
+                                    </div>
+                                </div>
+                                <span>{{ "%.1f"|format(item.percentage) }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.percentage >= 75 %}
+                                <span class="badge badge-success">Good</span>
+                            {% elif item.percentage >= 50 %}
+                                <span class="badge badge-warning">Average</span>
+                            {% else %}
+                                <span class="badge badge-danger">Poor</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="bi bi-file-text" style="font-size: 3rem; color: #ccc;"></i>
+                            <h5 class="mt-3">No Data Available</h5>
+                            <p class="text-muted">Select a date range to generate report.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style media="print">
+    .sidebar, .mobile-menu-btn, .btn, .card-header .badge, .btn-outline-primary {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding: 20px !important;
+    }
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    .progress {
+        border: 1px solid #ddd !important;
+    }
+</style>
+
+{% else %}
+<!-- Access Denied for Teachers -->
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle"></i> Access Denied
+            </div>
+            <div class="card-body text-center py-5">
+                <i class="bi bi-shield-lock" style="font-size: 5rem; color: #dc3545;"></i>
+                <h3 class="mt-4">Restricted Area</h3>
+                <p class="lead text-muted">You don't have permission to access reports.</p>
+                <p class="text-muted">This section is only available to administrators.</p>
+                <hr>
+                <p>If you need access, please contact your system administrator.</p>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-arrow-left"></i> Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

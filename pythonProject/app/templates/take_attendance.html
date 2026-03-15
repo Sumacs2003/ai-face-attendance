@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Attendance - Face Attendance System</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #84fab0;
+            --danger-color: #f5576c;
+        }
+
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 260px;
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar .profile-section {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar .profile-section i {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .sidebar .profile-section h5 {
+            color: white;
+            margin: 10px 0 5px;
+            font-weight: 600;
+        }
+
+        .sidebar .profile-section p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .sidebar .nav {
+            padding: 20px 0;
+        }
+
+        .sidebar .nav-link {
+            color: white !important;
+            padding: 12px 25px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            margin: 2px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.15);
+            border-left-color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            border-left-color: white;
+            font-weight: 500;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mobile-menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Camera Container */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            transform: scaleX(-1);
+            background: #2c3e50;
+            min-height: 400px;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .camera-permission-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+
+        .btn-camera {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-camera:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-camera:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #333;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #f5576c, #f093fb);
+            color: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        .attendance-list {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .attendance-item {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .attendance-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge-confidence {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1000;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Sidebar - FIXED: Changed all 'student' to 'staff' -->
+    <div class="sidebar" id="sidebar">
+        <div class="profile-section">
+            <i class="bi bi-camera-fill"></i>
+            <h5>{{ current_user.username }}</h5>
+            <p>{% if current_user.is_admin %}Administrator{% elif current_user.is_teacher %}Teacher{% else %}Staff{% endif %}</p>
+        </div>
+
+        <nav class="nav flex-column">
+            <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a class="nav-link" href="{{ url_for('staff.list') }}">
+                <i class="bi bi-people"></i> Students
+            </a>
+            <a class="nav-link active" href="{{ url_for('attendance.take') }}">
+                <i class="bi bi-check2-circle"></i> Take Attendance
+            </a>
+            <a class="nav-link" href="{{ url_for('attendance.view') }}">
+                <i class="bi bi-calendar-check"></i> View Attendance
+            </a>
+            {% if current_user.is_admin %}
+            <a class="nav-link" href="{{ url_for('face.register', student_id=0) }}">
+                <i class="bi bi-camera"></i> Register Face
+            </a>
+            <a class="nav-link" href="{{ url_for('main.settings') }}">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+            <a class="nav-link" href="{{ url_for('main.database_manage') }}">
+                <i class="bi bi-database"></i> Database
+            </a>
+            {% endif %}
+            <a class="nav-link" href="{{ url_for('auth.profile') }}">
+                <i class="bi bi-person"></i> Profile
+            </a>
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-camera"></i> Take Attendance - Face Recognition</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <!-- Camera Permission Box -->
+                        <div id="cameraPermissionBox" class="camera-permission-box">
+                            <i class="bi bi-camera" style="font-size: 4rem; color: var(--primary-color);"></i>
+                            <h4 class="mt-3">Camera Access Required</h4>
+                            <p class="text-muted">Please allow camera access to take attendance using face recognition</p>
+                            <button class="btn-camera" onclick="startCamera()">
+                                <i class="bi bi-play-circle"></i> Start Camera
+                            </button>
+                        </div>
+
+                        <!-- Camera Feed -->
+                        <div id="cameraFeed" style="display: none;">
+                            <div class="camera-container">
+                                <video id="video" autoplay playsinline></video>
+                                <canvas id="canvas"></canvas>
+                            </div>
+
+                            <div class="mt-3">
+                                <button id="captureBtn" class="btn-camera" onclick="captureAndRecognize()" disabled>
+                                    <i class="bi bi-camera"></i> Capture & Recognize
+                                </button>
+                            </div>
+
+                            <div id="recognitionStatus" class="mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Today's Attendance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="attendance-list" id="attendanceList">
+                            <p class="text-muted text-center">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Attendance Section -->
+        <div class="card mt-4">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-person-check"></i> Manual Attendance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <select id="manualStudent" class="form-select mb-3">
+                            <option value="">Select Student</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }} ({{ student.student_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="manualStatus" class="form-select mb-3">
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="late">Late</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="markManualAttendance()">
+                            <i class="bi bi-check"></i> Mark
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get CSRF token
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            if (window.innerWidth <= 992) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+
+        // Camera elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const cameraPermissionBox = document.getElementById('cameraPermissionBox');
+        const cameraFeed = document.getElementById('cameraFeed');
+        const recognitionStatus = document.getElementById('recognitionStatus');
+        const attendanceList = document.getElementById('attendanceList');
+
+        let currentStream = null;
+
+        // Load today's attendance on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTodayAttendance();
+        });
+
+        // Load today's attendance
+        async function loadTodayAttendance() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`/attendance/view?date=${today}`);
+                const html = await response.text();
+
+                // Parse the HTML to get attendance data
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const rows = doc.querySelectorAll('tbody tr');
+
+                if (rows.length > 0 && !rows[0].textContent.includes('No attendance')) {
+                    let html = '';
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 4) {
+                            html += `
+                                <div class="attendance-item">
+                                    <div>
+                                        <strong>${cells[0]?.textContent?.trim() || ''}</strong>
+                                        <br>
+                                        <small>${cells[1]?.textContent?.trim() || ''}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-success">Present</span>
+                                        <br>
+                                        <small>${cells[2]?.textContent?.trim() || ''}</small>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    attendanceList.innerHTML = html || '<p class="text-muted text-center">No attendance yet today</p>';
+                } else {
+                    attendanceList.innerHTML = '<p class="text-muted text-center">No attendance yet today</p>';
+                }
+            } catch (error) {
+                attendanceList.innerHTML = '<p class="text-muted text-center">Error loading attendance</p>';
+            }
+        }
+
+        // Start camera
+        async function startCamera() {
+            cameraPermissionBox.style.display = 'none';
+            cameraFeed.style.display = 'block';
+
+            try {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+
+                captureBtn.disabled = false;
+                recognitionStatus.innerHTML = '<div class="success-message">✅ Camera ready! Click "Capture & Recognize"</div>';
+
+            } catch (err) {
+                console.error('Camera error:', err);
+                cameraPermissionBox.style.display = 'block';
+                cameraFeed.style.display = 'none';
+
+                let errorMessage = 'Error accessing camera: ';
+                if (err.name === 'NotAllowedError') {
+                    errorMessage = 'Camera permission denied. Please allow access.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage = 'No camera found.';
+                } else if (err.name === 'NotReadableError') {
+                    errorMessage = 'Camera is busy. Close other apps.';
+                } else {
+                    errorMessage += err.message;
+                }
+
+                recognitionStatus.innerHTML = `<div class="error-message">❌ ${errorMessage}</div>`;
+            }
+        }
+
+        // Capture and recognize face
+        async function captureAndRecognize() {
+            recognitionStatus.innerHTML = '<div class="alert alert-info">Processing...</div>';
+            captureBtn.disabled = true;
+
+            try {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const imageData = canvas.toDataURL('image/jpeg', 0.9);
+
+                const response = await fetch('/face/recognize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.matches && data.matches.length > 0) {
+                    const match = data.matches[0];
+
+                    const markResponse = await fetch('/attendance/mark', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()
+                        },
+                        body: JSON.stringify({
+                            student_id: match.student_id,
+                            confidence: match.confidence
+                        })
+                    });
+
+                    const markData = await markResponse.json();
+
+                    if (markData.success) {
+                        recognitionStatus.innerHTML = `
+                            <div class="success-message">
+                                <strong>✅ Attendance Marked!</strong><br>
+                                Name: ${match.name}<br>
+                                Confidence: ${(match.confidence * 100).toFixed(1)}%<br>
+                                Time: ${new Date().toLocaleTimeString()}
+                            </div>
+                        `;
+                        loadTodayAttendance(); // Refresh attendance list
+                    } else {
+                        recognitionStatus.innerHTML = `
+                            <div class="error-message">
+                                ${markData.message}
+                            </div>
+                        `;
+                    }
+                } else {
+                    recognitionStatus.innerHTML = `
+                        <div class="error-message">
+                            ❌ No matching face found. Please try again.
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                recognitionStatus.innerHTML = `
+                    <div class="error-message">
+                        Error: ${error.message}
+                    </div>
+                `;
+            } finally {
+                captureBtn.disabled = false;
+            }
+        }
+
+        // Mark manual attendance
+        async function markManualAttendance() {
+            const studentId = document.getElementById('manualStudent').value;
+            const status = document.getElementById('manualStatus').value;
+
+            if (!studentId) {
+                alert('Please select a student');
+                return;
+            }
+
+            try {
+                const response = await fetch('/attendance/mark', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        student_id: parseInt(studentId),
+                        confidence: 1.0,
+                        status: status
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    loadTodayAttendance();
+                    document.getElementById('manualStudent').value = '';
+                } else {
+                    alert(data.message);
+                }
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

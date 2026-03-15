@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block page_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> System Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <h6 class="mb-3">General Settings</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Site Name</label>
+                        {{ form.site_name(class="form-control") }}
+                    </div>
+
+                    <h6 class="mb-3 mt-4">Attendance Settings</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Face Recognition Threshold</label>
+                        {{ form.attendance_threshold(class="form-control", step="0.1") }}
+                    </div>
+
+                    <h6 class="mb-3 mt-4">Security Settings</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Session Timeout (minutes)</label>
+                        {{ form.session_timeout(class="form-control") }}
+                    </div>
+
+                    <hr>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

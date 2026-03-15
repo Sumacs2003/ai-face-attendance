@@ -1,0 +1,123 @@
+{% extends "student/base.html" %}
+
+{% block title %}My QR Code{% endblock %}
+
+{% block page_title %}Student QR Code{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="qr-container">
+            <h4 class="mb-4">{{ student.name }}</h4>
+
+            <!-- QR Code -->
+            <div class="qr-code-display mb-4">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="Student QR Code" class="img-fluid">
+            </div>
+
+            <!-- Student Info -->
+            <div class="student-info mb-4">
+                <table class="table table-borderless">
+                    <tr>
+                        <th>Student ID:</th>
+                        <td>{{ student.student_id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Roll Number:</th>
+                        <td>{{ student.roll_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Class:</th>
+                        <td>{{ student.class_name }} {{ student.section }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Instructions -->
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>How to use:</strong> Show this QR code to the attendance scanner for quick check-in.
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print QR Code
+                </button>
+                <button class="btn btn-outline-secondary" onclick="downloadQR()">
+                    <i class="bi bi-download"></i> Download QR Code
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function downloadQR() {
+        const link = document.createElement('a');
+        link.download = '{{ student.student_id }}_qrcode.png';
+        link.href = document.querySelector('.qr-code-display img').src;
+        link.click();
+    }
+</script>
+
+<style>
+    .qr-container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .qr-code-display {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        display: inline-block;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .qr-code-display img {
+        max-width: 250px;
+        height: auto;
+    }
+
+    .student-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .student-info table {
+        margin-bottom: 0;
+    }
+
+    .student-info th {
+        width: 40%;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .student-info td {
+        color: #333;
+        font-weight: 500;
+    }
+
+    @media print {
+        .sidebar, .mobile-menu-btn, .main-content > :not(.qr-container), .btn {
+            display: none !important;
+        }
+
+        .qr-container {
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .main-content {
+            margin: 0;
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}

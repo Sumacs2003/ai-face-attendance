@@ -1,0 +1,150 @@
+{% extends "student/base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block page_title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Profile Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="profile-avatar mb-3">
+                    <div class="bg-primary text-white d-flex align-items-center justify-content-center mx-auto"
+                         style="width: 150px; height: 150px; border-radius: 50%; font-size: 4rem;">
+                        {{ student.name[0] }}
+                    </div>
+                </div>
+                <h4>{{ student.name }}</h4>
+                <p class="text-muted mb-2">{{ student.student_id }}</p>
+                <span class="badge bg-success mb-3">{{ student.class_name }} {{ student.section }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Full Name:</th>
+                        <td>{{ student.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Student ID:</th>
+                        <td>{{ student.student_id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Roll Number:</th>
+                        <td>{{ student.roll_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Class & Section:</th>
+                        <td>{{ student.class_name }} {{ student.section }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date of Birth:</th>
+                        <td>{{ student.date_of_birth.strftime('%d %B %Y') if student.date_of_birth else 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Admission Date:</th>
+                        <td>{{ student.admission_date.strftime('%d %B %Y') if student.admission_date else 'Not provided' }}</td>
+                    </tr>
+                </table>
+
+                <h5 class="mt-4"><i class="bi bi-envelope"></i> Contact Information</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Email:</th>
+                        <td>{{ student.email or 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td>{{ student.phone or 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Address:</th>
+                        <td>{{ student.address or 'Not provided' }}</td>
+                    </tr>
+                </table>
+
+                <h5 class="mt-4"><i class="bi bi-people"></i> Parent/Guardian Information</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Parent Name:</th>
+                        <td>{{ student.parent_name or 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Parent Phone:</th>
+                        <td>{{ student.parent_phone or 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Parent Email:</th>
+                        <td>{{ student.parent_email or 'Not provided' }}</td>
+                    </tr>
+                </table>
+
+                <h5 class="mt-4"><i class="bi bi-shield-check"></i> Account Information</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Username:</th>
+                        <td>{{ current_user.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Account Created:</th>
+                        <td>{{ current_user.created_at.strftime('%d %B %Y') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Login:</th>
+                        <td>{{ current_user.last_login.strftime('%d %B %Y %I:%M %p') if current_user.last_login else 'First time' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Attendance Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6>Total Days</h6>
+                            <h3>{{ stats.total_days }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6>Present</h6>
+                            <h3 class="text-success">{{ stats.present_this_month }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6>Absent</h6>
+                            <h3 class="text-danger">{{ stats.absent_this_month }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded">
+                            <h6>Percentage</h6>
+                            <h3>{{ stats.attendance_percentage }}%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

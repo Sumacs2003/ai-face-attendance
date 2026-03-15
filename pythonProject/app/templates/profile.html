@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Profile Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <!-- Profile Avatar -->
+                <div class="bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width: 120px; height: 120px; border-radius: 50%; font-size: 3rem;">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+
+                <h4>{{ current_user.username }}</h4>
+                <p class="text-muted">
+                    {% if current_user.is_admin %}
+                        <span class="badge bg-danger">Administrator</span>
+                    {% elif current_user.is_teacher %}
+                        <span class="badge bg-info">Teacher</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Staff</span>
+                    {% endif %}
+                </p>
+
+                <p class="text-muted mb-1">
+                    <i class="bi bi-envelope"></i> {{ current_user.email }}
+                </p>
+                <p class="text-muted">
+                    <i class="bi bi-calendar"></i> Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-speedometer2"></i> Go to Dashboard
+                    </a>
+                    <a href="{{ url_for('staff.list') }}" class="btn btn-outline-success">
+                        <i class="bi bi-people"></i> View Students
+                    </a>
+                    <a href="{{ url_for('attendance.take') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-check2-circle"></i> Take Attendance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Username:</th>
+                        <td>{{ current_user.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ current_user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Account Type:</th>
+                        <td>
+                            {% if current_user.is_admin %}
+                                Administrator
+                            {% elif current_user.is_teacher %}
+                                Teacher
+                            {% else %}
+                                Staff
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Account Status:</th>
+                        <td>
+                            {% if current_user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Member Since:</th>
+                        <td>{{ current_user.created_at.strftime('%B %d, %Y at %I:%M %p') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Login:</th>
+                        <td>
+                            {% if current_user.last_login %}
+                                {{ current_user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+                            {% else %}
+                                <span class="text-muted">First time login</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+
+                {% if current_user.is_teacher %}
+                <h5 class="mt-4"><i class="bi bi-briefcase"></i> Teacher Information</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Teacher ID:</th>
+                        <td>{{ current_user.teacher_id or 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Department:</th>
+                        <td>{{ current_user.department or 'Not provided' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td>{{ current_user.phone or 'Not provided' }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-key"></i> Change Password</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.change_password') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Password</label>
+                        <input type="password" name="current_password" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">New Password</label>
+                        <input type="password" name="new_password" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Confirm New Password</label>
+                        <input type="password" name="confirm_password" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Account created on {{ current_user.created_at.strftime('%B %d, %Y') }}
+                    </div>
+                    {% if current_user.last_login %}
+                    <div class="list-group-item">
+                        <i class="bi bi-box-arrow-in-right text-primary"></i>
+                        Last login: {{ current_user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Session Information -->
+<div class="row mt-2">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-2"><i class="bi bi-info-circle"></i> Session Information</h6>
+                <p class="mb-1 small">
+                    <strong>Session Started:</strong> {{ session.get('_permanent', False) and 'Permanent' or 'Temporary' }} session<br>
+                    <strong>User ID:</strong> {{ current_user.id }}<br>
+                    <strong>Authentication Method:</strong> Flask-Login
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-hide flash messages after 5 seconds
+    setTimeout(function() {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
+
+    // Password validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const newPass = document.querySelector('[name="new_password"]').value;
+        const confirmPass = document.querySelector('[name="confirm_password"]').value;
+
+        if (newPass !== confirmPass) {
+            e.preventDefault();
+            alert('New password and confirm password do not match!');
+        }
+
+        if (newPass.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long!');
+        }
+    });
+</script>
+{% endblock %}
